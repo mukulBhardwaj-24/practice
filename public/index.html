@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Deployment using CI/CD</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #222; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; background: #e3f2fd; color: #0d47a1; font-size: 14px; }
+    .badge.production { background: #ffebee; color: #b71c1c; }
+    .badge.staging { background: #fff8e1; color: #e65100; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+    td { border-bottom: 1px solid #eee; padding: 6px 4px; }
+    td:first-child { color: #666; width: 40%; }
+    form { display: flex; gap: 8px; }
+    input { flex: 1; padding: 8px; }
+    button { padding: 8px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1 id="greeting">Loading...</h1>
+  <p>Environment: <span id="env" class="badge">?</span></p>
+
+  <table id="info"></table>
+
+  <h2>Notes</h2>
+  <form id="note-form">
+    <input id="note-text" placeholder="Write a note..." autocomplete="off">
+    <button type="submit">Add</button>
+  </form>
+  <ul id="notes"></ul>
+
+  <script>
+    async function loadInfo() {
+      const info = await fetch('/api/info').then(r => r.json());
+      document.getElementById('greeting').textContent = info.greeting;
+      const env = document.getElementById('env');
+      env.textContent = info.environment;
+      env.className = 'badge ' + info.environment;
+      document.getElementById('info').innerHTML = Object.entries(info)
+        .filter(([k]) => k !== 'greeting')
+        .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`)
+        .join('');
+    }
+
+    async function loadNotes() {
+      const notes = await fetch('/api/notes').then(r => r.json());
+      const list = document.getElementById('notes');
+      list.innerHTML = '';
+      notes.forEach(n => {
+        const li = document.createElement('li');
+        li.textContent = n.text;
+        list.appendChild(li);
+      });
+    }
+
+    document.getElementById('note-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('note-text');
+      if (!input.value.trim()) return;
+      await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: input.value }),
+      });
+      input.value = '';
+      loadNotes();
+    });
+
+    loadInfo();
+    loadNotes();
+  </script>
+</body>
+</html>
