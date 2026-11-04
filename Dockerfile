@@ -9,6 +9,8 @@ COPY src ./src
 COPY public ./public
 
 ENV NODE_ENV=production
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
 EXPOSE 3000
 USER node
 

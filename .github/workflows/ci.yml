@@ -21,10 +21,15 @@ jobs:
   docker:
     needs: test
     runs-on: ubuntu-latest 
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/mukulbhardwaj-24/learning-app
     steps:
       - uses: actions/checkout@v5 
       - name: Build image
-        run: docker build -t learning-app:${{github.sha}} .
+        run: docker build --build-arg APP_VERSION=${{ github.sha }} -t learning-app:${{github.sha}} .
       - name: Start container
         run: docker run -d --name smoke -p 3000:3000 learning-app:${{github.sha}} 
       - name: Smoke test
@@ -34,3 +39,14 @@ jobs:
       - name: Show contianer logs on failure
         if: failure()
         run: docker logs smoke
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Push image
+        if: github.event_name == 'push'
+        run: |
+          docker tag learning-app:${{ github.sha }} $IMAGE:${{ github.sha }}
+          docker tag learning-app:${{ github.sha }} $IMAGE:latest 
+          docker push $IMAGE:{{ github.sha }}
+          docker push $IMAGE:latest
