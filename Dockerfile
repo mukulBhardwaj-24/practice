@@ -1,4 +1,5 @@
 FROM node:24-alpine
+LABEL org.opencontainers.image.source=https://github.com/mukulBhardwaj-24/practice
 
 WORKDIR /app
 
