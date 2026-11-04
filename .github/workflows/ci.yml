@@ -31,3 +31,6 @@ jobs:
         run: |
           sleep 3
           curl --fail http://localhost:3000/health
+      - name: Show contianer logs on failure
+        if: failure()
+        run: docker logs smoke
