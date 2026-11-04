@@ -48,5 +48,5 @@ jobs:
         run: |
           docker tag learning-app:${{ github.sha }} $IMAGE:${{ github.sha }}
           docker tag learning-app:${{ github.sha }} $IMAGE:latest 
-          docker push $IMAGE:{{ github.sha }}
+          docker push $IMAGE:${{ github.sha }}
           docker push $IMAGE:latest
