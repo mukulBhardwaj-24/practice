@@ -52,29 +52,29 @@ jobs:
           docker push $IMAGE:latest
 
     deploy:
-    needs: docker
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    env:
-      APP_URL: https://learning-app-h61f.onrender.com
-    steps:
-      - name: Trigger Render deploy of this exact image
-        run: |
-          curl --fail -s -X POST \
-            "${{ secrets.RENDER_DEPLOY_HOOK }}&imgURL=ghcr.io%2Fmukulbhardwaj-24%2Flearning-app%3A${{ github.sha }}" \
-            > /dev/null
-          echo "Deploy requested for ${{ github.sha }}"
+      needs: docker
+      if: github.event_name == 'push'
+      runs-on: ubuntu-latest
+      env:
+        APP_URL: https://learning-app-h61f.onrender.com
+      steps:
+        - name: Trigger Render deploy of this exact image
+          run: |
+            curl --fail -s -X POST \
+              "${{ secrets.RENDER_DEPLOY_HOOK }}&imgURL=ghcr.io%2Fmukulbhardwaj-24%2Flearning-app%3A${{ github.sha }}" \
+              > /dev/null
+            echo "Deploy requested for ${{ github.sha }}"
 
-      - name: Wait until the new version is live
-        run: |
-          for i in $(seq 1 30); do
-            live=$(curl -s "$APP_URL/api/info" | grep -o '"version":"[^"]*"' || true)
-            echo "attempt $i: $live"
-            if echo "$live" | grep -q "${{ github.sha }}"; then
-              echo "✅ ${{ github.sha }} is live"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "❌ new version did not go live within 5 minutes"
-          exit 1
+        - name: Wait until the new version is live
+          run: |
+            for i in $(seq 1 30); do
+              live=$(curl -s "$APP_URL/api/info" | grep -o '"version":"[^"]*"' || true)
+              echo "attempt $i: $live"
+              if echo "$live" | grep -q "${{ github.sha }}"; then
+                echo "✅ ${{ github.sha }} is live"
+                exit 0
+              fi
+              sleep 10
+            done
+            echo "❌ new version did not go live within 5 minutes"
+            exit 1
